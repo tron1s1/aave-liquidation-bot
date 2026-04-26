@@ -296,10 +296,11 @@ async fn scan_for_liquidations(
         match crate::executor::execute_liquidation(config, &opportunity, &simulation, oracle_cache).await {
             Ok(result) => {
                 crate::executor::log_execution_result(&result);
-                // In live mode, if TX failed (no hash), release from cache immediately
-                // so the user can be retried on next scan
+                // In live mode, if TX failed or simulation reverted (no hash),
+                // REMOVE the user from the watchlist completely so we don't spam simulate them on every block.
+                // They will be re-added on the next Graph poll if they are truly still underwater.
                 if !result.paper_mode && result.tx_hash.is_none() {
-                    pending_cache.release(&user_pos.user);
+                    watchlist.remove(&user_pos.user);
                 }
                 // Otherwise, keep in cache for TTL duration:
                 // - Paper mode: prevents re-logging the same user
@@ -308,8 +309,8 @@ async fn scan_for_liquidations(
             Err(e) => {
                 error!(user = ?user_pos.user, error = %e, "Execution failed");
                 METRICS.record_failed();
-                // Release on error so user can be retried
-                pending_cache.release(&user_pos.user);
+                // Do not release from pending cache. Let the 60s TTL expire naturally
+                // to prevent rapid retry loops on network errors.
             }
         }
     }
