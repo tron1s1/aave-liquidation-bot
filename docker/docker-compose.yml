@@ -1,0 +1,36 @@
+# Aave V3 Liquidation Bot + Local Nitro Relay
+# Deploy on AWS us-east-1 for minimum latency to the Arbitrum Sequencer
+
+services:
+  # ── Liquidation Bot ──────────────────────────────────────────────
+  bot:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      - CONFIG_PATH=/app/config.toml
+      - BOT_PRIVATE_KEY=${BOT_PRIVATE_KEY}
+      - THEGRAPH_API_KEY=${THEGRAPH_API_KEY}
+      - LOG_FORMAT=json
+      - RUST_LOG=info
+    volumes:
+      - ../config.toml:/app/config.toml:ro
+    restart: unless-stopped
+    depends_on:
+      - nitro-relay
+
+  # ── Local Nitro Relay (Arbitrum Sequencer Feed) ──────────────────
+  # Provides a local, uncompressed feed for lower latency.
+  # The bot connects to ws://nitro-relay:9642/feed instead of the public endpoint.
+  nitro-relay:
+    image: offchainlabs/nitro-node:v3.5.3-d81ae46
+    command:
+      - --node.feed.input.url=wss://arb1-feed.arbitrum.io/feed
+      - --node.feed.output.enable
+      - --node.feed.output.addr=0.0.0.0
+      - --node.feed.output.port=9642
+      - --execution.caching.archive=false
+      - --init.empty=true
+    ports:
+      - "9642:9642"
+    restart: unless-stopped

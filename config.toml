@@ -1,0 +1,40 @@
+# =============================================================================
+# Aave V3 Liquidation Bot — Configuration
+# =============================================================================
+# All sensitive values (private keys, API keys) come from environment variables.
+# This file contains ONLY non-sensitive operational parameters.
+
+[network]
+chain_id = 42161
+rpc_url = "https://arb-mainnet.g.alchemy.com/v2/cPcAZNKPtGYaj4uO71e-C"
+private_rpc_url = ""                                        # Alchemy private relay for MEV protection
+ws_rpc_url = "wss://arb-mainnet.g.alchemy.com/v2/cPcAZNKPtGYaj4uO71e-C"
+sequencer_feed_url = "wss://arb1-feed.arbitrum.io/feed"
+sequencer_connections = 5
+block_poll_interval_ms = 250
+
+[contracts]
+pool_addresses_provider = "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb"
+uniswap_v3_router = "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45"
+liquidation_executor = "0x97a39c491DFE0c66c1b10Ebe51356f359C325b21"   # Deployed on Arbitrum mainnet
+
+[thegraph]
+subgraph_url = "https://gateway.thegraph.com/api/{api_key}/subgraphs/id/C4EGD574KuKV8GeAnaTkwjQ5fRtZYAMBMFSyimRXijqY"
+poll_interval_secs = 3600
+max_health_factor = 1.1     # Only watch users with HF below this
+page_size = 1000
+
+[strategy]
+min_profit_bps = 100        # 1% minimum net profit to execute
+flash_loan_premium_bps = 5  # 0.05% Aave V3 flash loan fee
+max_slippage_bps = 50       # 0.5% max swap slippage
+max_gas_price_gwei = 5.0
+min_debt_usd = 250            # Don't liquidate tiny positions (not worth gas)
+max_flash_loan_usd = 1000   # Max flash loan size in USD (cap exposure: 1000 = $1k, 10000 = $10k)
+
+[bot]
+paper_mode = true           # Start in paper mode — no real TXs
+skip_simulation = true      # Skip eth_call for max speed (wastes gas if reverted)
+private_key_env = "BOT_PRIVATE_KEY"
+thegraph_api_key_env = "THEGRAPH_API_KEY"
+log_level = "info"

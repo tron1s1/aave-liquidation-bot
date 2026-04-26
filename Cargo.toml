@@ -1,0 +1,55 @@
+[package]
+name = "aave-liquidation-bot"
+version = "0.1.0"
+edition = "2021"
+description = "High-performance Aave V3 flash-loan liquidation bot for Arbitrum"
+
+[dependencies]
+# ── Ethereum / Alloy ──
+alloy = { version = "1", features = ["full", "json"] }
+
+# ── Async Runtime ──
+tokio = { version = "1", features = ["full"] }
+futures-util = "0.3"
+
+# ── WebSocket (Sequencer Feed) ──
+tokio-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"] }
+rustls = { version = "0.23", features = ["aws_lc_rs"] }
+
+# ── HTTP / GraphQL (TheGraph) ──
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+
+# ── Serialization ──
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+# ── Logging / Tracing ──
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# ── Concurrency ──
+dashmap = "6"
+
+# ── Error handling ──
+eyre = "0.6"
+color-eyre = "0.6"
+
+# ── Time ──
+chrono = { version = "0.4", features = ["serde"] }
+
+# ── Hex ──
+hex = "0.4"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.dev]
+opt-level = 1
