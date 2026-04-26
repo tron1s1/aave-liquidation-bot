@@ -38,6 +38,9 @@ color-eyre = "0.6"
 # ── Time ──
 chrono = { version = "0.4", features = ["serde"] }
 
+# ── Env ──
+dotenvy = "0.15"
+
 # ── Hex ──
 hex = "0.4"
 

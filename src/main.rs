@@ -53,6 +53,9 @@ async fn main() -> Result<()> {
     metrics::init_logging(&config.bot.log_level)?;
 
     // ── Startup banner ──────────────────────────────────────────────────
+    // Load environment variables from .env file if present
+    dotenvy::dotenv().ok();
+
     info!("╔══════════════════════════════════════════════════════════════╗");
     info!("║   Aave V3 Liquidation Bot — Arbitrum Mainnet               ║");
     info!("║   Strategy 1: Flash-Loan Liquidations                      ║");
