@@ -187,6 +187,22 @@ async fn execute_live_mode(
                         "Flash loan within USD cap ✅"
                     );
                 }
+
+                if debt_usd < U256::from(config.strategy.min_debt_usd) {
+                    warn!(
+                        debt_usd = %debt_usd,
+                        min_usd = config.strategy.min_debt_usd,
+                        "Skipping — debt too small, not worth gas"
+                    );
+                    return Ok(ExecutionResult {
+                        paper_mode: config.bot.paper_mode,
+                        tx_hash: None,
+                        gas_used: 0,
+                        gas_price: U256::ZERO,
+                        net_profit: U256::ZERO,
+                        opportunity: opportunity.clone(),
+                    });
+                }
             }
         }
 
