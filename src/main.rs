@@ -312,8 +312,8 @@ async fn scan_for_liquidations(
             Err(e) => {
                 error!(user = ?user_pos.user, error = %e, "Execution failed");
                 METRICS.record_failed();
-                // Do not release from pending cache. Let the 60s TTL expire naturally
-                // to prevent rapid retry loops on network errors.
+                // Remove from watchlist to prevent infinite retry loops on 429 errors
+                watchlist.remove(&user_pos.user);
             }
         }
     }
