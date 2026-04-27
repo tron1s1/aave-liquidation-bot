@@ -24,6 +24,8 @@ pragma solidity ^0.8.20;
 // Gas: Revert path < 35k, Happy path < 450k (target).
 // =============================================================================
 
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
 // ─── Interfaces (minimal, gas-efficient) ─────────────────────────────────────
 
 interface IERC20 {
@@ -80,7 +82,7 @@ error ZeroAmount();
 
 // ─── Main Contract ───────────────────────────────────────────────────────────
 
-contract LiquidationExecutor {
+contract LiquidationExecutor is ReentrancyGuard {
     // ── State Variables (all immutable or constant for gas savings) ───────
 
     /// @notice Owner of the contract (the bot EOA). Immutable after deployment.
@@ -97,9 +99,6 @@ contract LiquidationExecutor {
 
     /// @notice Minimum profit in basis points (280 = 2.8%). Immutable.
     uint256 public immutable minProfitBps;
-
-    /// @notice Reentrancy lock
-    uint256 private _locked = 1;
 
     /// @notice BPS denominator
     uint256 private constant BPS = 10_000;
@@ -122,13 +121,6 @@ contract LiquidationExecutor {
     modifier onlyOwner() {
         if (msg.sender != owner) revert Unauthorized();
         _;
-    }
-
-    modifier nonReentrant() {
-        if (_locked == 2) revert Unauthorized();
-        _locked = 2;
-        _;
-        _locked = 1;
     }
 
     // ── Constructor ──────────────────────────────────────────────────────
@@ -289,7 +281,7 @@ contract LiquidationExecutor {
     // ── Emergency: Rescue stuck tokens ────────────────────────────────────
 
     /// @notice Rescue any tokens accidentally sent to this contract.
-    function rescueTokens(address token) external onlyOwner {
+    function rescueTokens(address token) external onlyOwner nonReentrant {
         if (token == address(0)) revert ZeroAddress();
         uint256 balance = IERC20(token).balanceOf(address(this));
         if (balance > 0) {
